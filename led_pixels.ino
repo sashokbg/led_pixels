@@ -22,7 +22,7 @@ void setup() {
   ws2812b.begin();
 }
 
-int red = 0;
+int red = 128;
 int green = 0;
 int blue = 0;
 bool direction = true;
@@ -39,10 +39,10 @@ void loop() {
     green = msg[1];
     blue = msg[2];
 
-    //Serial.printf("Received RGB: %02x %02x %02x \n", red, green, blue);
+    Serial.printf("Received RGB: %02x %02x %02x \n", red, green, blue);
   }
 
-  ws2812b.setBrightness(100);
+  ws2812b.setBrightness(30);
 
   for(int i = 0; i < NUM_PIXELS / 2; i++) {
     ws2812b.setPixelColor(i, ws2812b.Color(red, green, blue));
