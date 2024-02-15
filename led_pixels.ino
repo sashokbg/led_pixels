@@ -9,7 +9,7 @@
 #include <Adafruit_NeoPixel.h>
 
 
-#define PIN_WS2812B 17
+#define PIN_WS2812B 2
 #define NUM_PIXELS 60
 #define BRIGHTNESS 100
 #define BAUD_RATE 9600
@@ -25,9 +25,7 @@ void setup() {
 int red = 128;
 int green = 0;
 int blue = 0;
-bool direction = true;
-int specialPixel = 9;
-int specialPixelTimer = 0;
+
 byte msg[4];
 
 void loop() {
@@ -39,7 +37,10 @@ void loop() {
     green = msg[1];
     blue = msg[2];
 
-    Serial.printf("Received RGB: %02x %02x %02x \n", red, green, blue);
+    Serial.print("Received RGB: ");
+    Serial.print(red);
+    Serial.print(green);
+    Serial.print(blue);
   }
 
   ws2812b.setBrightness(30);

@@ -41,7 +41,6 @@ int main(int argc, char* argv[])
   tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
 
   cfsetispeed(&tty, B9600);
-  cfsetospeed(&tty, B9600);
 
   // Save tty settings, also checking for error
   if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
@@ -82,13 +81,7 @@ int main(int argc, char* argv[])
     unsigned long pixel = XGetPixel(image, x, y);
     XDestroyImage(image);
 
-    //    printf("Red mask %d \n", image->red_mask);
-    //   printf("green mask: %d\n", image->green_mask);
-    //    printf("bue mask: %d\n", image->blue_mask);
-    //
-    //      printf("Pixel at (%d, %d): %lu\n", x, y, pixel);
-    //
-    printf("Coordinates %d - %d ", x, y);
+    printf("\t>>\tCoordinates %d - %d ", x, y);
     printf("RGB: %02lx", (pixel & image->red_mask) >> 16);
     printf("%02lx", (pixel & image->green_mask) >> 8);
     printf("%02lx\n", (pixel & image->blue_mask));
@@ -104,7 +97,7 @@ int main(int argc, char* argv[])
 
     //int n = read(serial_port, &read_buf, sizeof(read_buf));
 
-    //printf("Read %i bytes. Received message: %s", n, read_buf);
+    //printf("<<\tRead %i bytes. Received message: %s\n", n, read_buf);
 
     usleep(50000); // Sleep for 100,000 microseconds (0.1 seconds)
   }
