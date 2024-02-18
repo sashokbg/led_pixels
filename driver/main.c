@@ -11,22 +11,25 @@
 
 int keepRunning = 1;
 struct termios tty;
-char read_buf[256];
+char read_buf[512];
+int serial_port;
 
 void intHandler(int dummy)
 {
   keepRunning = 0;
 }
 
-int main(int argc, char* argv[])
+int initSerial()
 {
-  signal(SIGINT, intHandler);
-  int serial_port = open("/dev/ttyUSB0", O_RDWR);
+  serial_port = open("/dev/ttyUSB0", O_RDWR);
+
   if (serial_port < 0) {
     printf("Error %i from open: %s\n", errno, strerror(errno));
+    return 1;
   }
   if (tcgetattr(serial_port, &tty) != 0) {
     printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+    return 1;
   }
 
   tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
@@ -46,21 +49,11 @@ int main(int argc, char* argv[])
   if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
     printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
   }
+  return 0;
+}
 
-  Display* display = XOpenDisplay(NULL);
-  if (!display) {
-    fprintf(stderr, "Unable to open display\n");
-    return 1;
-  }
-
-  Window root = DefaultRootWindow(display);
-
-  XWindowAttributes windowAttributes;
-  XGetWindowAttributes(display, root, &windowAttributes);
-
-  int width = windowAttributes.width;
-  int height = windowAttributes.height;
-
+void loop(Display* display, Window root, int width, int height)
+{
   while (keepRunning) {
     int x, y, win_x, win_y;
     unsigned int mask_return;
@@ -69,13 +62,12 @@ int main(int argc, char* argv[])
 
     XQueryPointer(display, root, &root_return, &child_return, &x, &y, &win_x, &win_y, &mask_return);
 
-    // printf("X is %d Y is %d \n", x, y);
     XImage* image = XGetImage(display, root, 0, 0, width, height, AllPlanes, ZPixmap);
 
     if (!image) {
       fprintf(stderr, "Unable to get image\n");
       XCloseDisplay(display);
-      return 1;
+      return;
     }
 
     unsigned long pixel = XGetPixel(image, x, y);
@@ -93,14 +85,40 @@ int main(int argc, char* argv[])
       '\r'
     };
 
+    // printf("\t>>\tHELLO %x\n", msg);
     write(serial_port, msg, sizeof(msg));
 
-    //int n = read(serial_port, &read_buf, sizeof(read_buf));
+    // int n = read(serial_port, &read_buf, sizeof(read_buf));
 
-    //printf("<<\tRead %i bytes. Received message: %s\n", n, read_buf);
+    // printf("\t<<\t%s(%ib)\n", read_buf, n);
 
-    usleep(50000); // Sleep for 100,000 microseconds (0.1 seconds)
+    usleep(100000); // Sleep for 100,000 microseconds (0.1 seconds)
   }
+}
+
+int main(int argc, char* argv[])
+{
+  signal(SIGINT, intHandler);
+  if (initSerial() != 0) {
+    fprintf(stderr, "Unable to open file\n");
+    return 1;
+  }
+
+  Display* display = XOpenDisplay(NULL);
+  if (!display) {
+    fprintf(stderr, "Unable to open display\n");
+    return 1;
+  }
+
+  Window root = DefaultRootWindow(display);
+
+  XWindowAttributes windowAttributes;
+  XGetWindowAttributes(display, root, &windowAttributes);
+
+  int width = windowAttributes.width;
+  int height = windowAttributes.height;
+
+  loop(display, root, width, height);
 
   // Cleanup
   printf("Stopping .. cleaning\n");

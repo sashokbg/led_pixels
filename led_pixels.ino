@@ -26,10 +26,9 @@ int red = 128;
 int green = 0;
 int blue = 0;
 
-byte msg[4];
-
 void loop() {
   if(Serial.available()) {
+    byte msg[4];
     Serial.readBytesUntil('\r', msg, 4);
     ws2812b.clear();
 
@@ -39,8 +38,11 @@ void loop() {
 
     Serial.print("Received RGB: ");
     Serial.print(red);
+    Serial.print(" ");
     Serial.print(green);
+    Serial.print(" ");
     Serial.print(blue);
+    Serial.println();
   }
 
   ws2812b.setBrightness(30);
